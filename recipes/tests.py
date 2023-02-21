@@ -18,6 +18,10 @@ class RecipeURLsTest(TestCase):
         url = reverse('recipes:recipe', kwargs={'id': 1})
         self.assertEqual(url, '/recipes/1/')
 
+    def test_recipe_search_url_is_correct(self):
+        url = reverse('recipes:search')
+        self.assertEqual(url, '/recipes/search/')
+
 
 class RecipeViewsTest(TestCase):
     def test_recipe_home_views_function_is_correct(self):
@@ -49,20 +53,27 @@ class RecipeViewsTest(TestCase):
             email='email@email.com',
         )
         recipe = Recipe.objects.create(
-            category = category,
-            author= author,
-            title = 'Title',
-            description = 'Descriptio',
-            slug = 'slug',
-            preparation_time = 10,
-            preparation_time_unit = 'Unit Time',
-            servings = 5,
-            servings_unit = 'Unit Serving',
-            preparation_steps = 'Steps',
-            preparation_steps_is_html =False,
-            is_published = True,
+            category=category,
+            author=author,
+            title='Abacaxi',
+            description='Descriptio',
+            slug='slug',
+            preparation_time=10,
+            preparation_time_unit='Unit Time',
+            servings=5,
+            servings_unit='Unit Serving',
+            preparation_steps='Steps',
+            preparation_steps_is_html=False,
+            is_published=True,
         )
         response = self.client.get(reverse('recipes:home'))
+        content = response.content.decode('utf-8')
+        context_recipes = response.context['recipes']
+
+        # criando receita manualmente e aparecendo na Home
+        self.assertIn(recipe.title, content)
+        # consultando que esta criando somente 1 receita
+        self.assertEqual(len(context_recipes), 1)
 
     def test_recipe_category_views_function_is_correct(self):
         view = resolve(reverse('recipes:category', kwargs={'category_id': 1}))
@@ -83,3 +94,8 @@ class RecipeViewsTest(TestCase):
     def test_recipe_detail_views_function_is_correct(self):
         view = resolve(reverse('recipes:recipe', kwargs={'id': 1}))
         self.assertIs(view.func, views.recipe)
+
+    def test_recipe_sarch_uses_correct_view_function(self):
+        resolved = resolve(reverse('recipes:search'))
+
+        self.assertIs(resolved.func, views.search)
